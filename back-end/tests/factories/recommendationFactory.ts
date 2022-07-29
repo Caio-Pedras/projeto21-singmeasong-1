@@ -1,14 +1,20 @@
-function createRecommendation() {
-    const recommendations = {
-        name: 'Falamansa - Xote dos Milagres',
-        youtubeLink: 'https://www.youtube.com/watch?v=chwyjJbcs1Y',
-    };
+import { prisma } from '../../src/database.js';
+import { CreateRecommendationData } from '../../src/services/recommendationsService.js';
+
+export async function createRecommendation(
+    recommendationData: CreateRecommendationData
+) {
+    const recommendations = await prisma.recommendation.create({
+        data: recommendationData,
+    });
 
     return recommendations;
 }
 
-const recommendationFactory = {
-    createRecommendation,
-};
+export async function createRecommendationWithScore(data) {
+    const recommendations = await prisma.recommendation.create({
+        data,
+    });
 
-export default recommendationFactory;
+    return recommendations;
+}
