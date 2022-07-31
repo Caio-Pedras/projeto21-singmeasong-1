@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { recommendationService } from '../services/recommendationsService.js';
+import { e2eService } from '../services/e2eService.js';
 
 async function deleteAll(req: Request, res: Response) {
-    await recommendationService.deleteAll();
+    await e2eService.deleteAll();
     res.send(200);
 }
 
