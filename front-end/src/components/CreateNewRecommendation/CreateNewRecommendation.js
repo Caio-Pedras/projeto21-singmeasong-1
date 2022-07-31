@@ -22,7 +22,7 @@ export default function CreateNewRecommendation({
     return (
         <Container>
             <Input
-                id="name"
+                id="input_name"
                 type="text"
                 placeholder="Name"
                 value={name}
@@ -30,7 +30,7 @@ export default function CreateNewRecommendation({
                 disabled={disabled}
             />
             <Input
-                id="link"
+                id="input_link"
                 type="text"
                 placeholder="https://youtu.be/..."
                 value={link}

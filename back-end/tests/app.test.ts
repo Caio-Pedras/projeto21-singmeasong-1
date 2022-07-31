@@ -4,10 +4,11 @@ import app from '../src/app.js';
 import { prisma } from '../src/database.js';
 import { createRecommendationBody } from './factories/recommendationBodyFactory.js';
 import {
+    createScenarioNRecommendation,
+    createScenarioNRecommendationEspecifcScore,
+    createScenarioNRecommendationRandomScore,
     createScenarioOneRecommendation,
     createScenarioOneRecommendationWithNegativeScore,
-    createScenarioThreeRecommendation,
-    createScenarioThreeRecommendationRandomScore,
     deleteAllData,
 } from './factories/scenarioFactory.js';
 
@@ -114,16 +115,16 @@ describe('Recommendation votes', () => {
 });
 
 describe('Recommendation getters', () => {
-    it('should create a scenario with 3 recommendations and get all of them, receive 200', async () => {
-        const recommendations = await createScenarioThreeRecommendation();
+    it('should create a scenario with 10 recommendations and get all of them, receive 200', async () => {
+        const recommendations = await createScenarioNRecommendation(10);
 
         const result = await supertest(app).get(`/recommendations`);
         expect(result.status).toBe(200);
-        expect(result.body.length).toBe(3);
+        expect(result.body.length).toBe(10);
     });
 
     it('should create a scenario with 3 recommendations and get each one of them by Id, receive 200', async () => {
-        const recommendations = await createScenarioThreeRecommendation();
+        const recommendations = await createScenarioNRecommendation(3);
 
         const result1 = await supertest(app).get(`/recommendations/1`);
         expect(result1.status).toBe(200);
@@ -137,21 +138,56 @@ describe('Recommendation getters', () => {
     });
 
     it('should not get a recommendation with an inexistent id, receive 404', async () => {
-        const recommendations = await createScenarioThreeRecommendation();
+        const recommendations = await createScenarioNRecommendation(3);
 
         const result1 = await supertest(app).get(`/recommendations/4`);
         expect(result1.status).toBe(404);
     });
 
     it('should create a scenario with 3 recommendations and get in order of score, receive 200', async () => {
-        const recommendations =
-            await createScenarioThreeRecommendationRandomScore();
+        const recommendations = await createScenarioNRecommendationRandomScore(
+            10
+        );
 
-        const result = await supertest(app).get(`/recommendations/top/3`);
+        const result = await supertest(app).get(`/recommendations/top/10`);
         expect(result.status).toBe(200);
-        expect(result.body.length).toBe(3);
-        expect(result.body[0].score).toBeGreaterThan(result.body[1].score);
-        expect(result.body[1].score).toBeGreaterThan(result.body[2].score);
+        expect(result.body.length).toBe(10);
+        let lastScore = result.body[0].score;
+        for (let i = 0; i < 10; i++) {
+            expect(result.body[1].score).toBeLessThanOrEqual(lastScore);
+            lastScore = result.body[1].score;
+        }
+    });
+});
+
+describe('Random recommendation', () => {
+    it('should return a random recommendation object, receive 200', async () => {
+        await createScenarioNRecommendationRandomScore(3);
+
+        const result = await supertest(app).get('/recommendations/random');
+        expect(result.body).toHaveProperty('score');
+        expect(result.statusCode).toBe(200);
+    });
+
+    it('should return one of the songs from a scenario of 10 songs with a score greather than 10, receive 200', async () => {
+        await createScenarioNRecommendationEspecifcScore(10, 20);
+
+        const result = await supertest(app).get('/recommendations/random');
+        expect(result.body.score).toBeGreaterThan(10);
+        expect(result.statusCode).toBe(200);
+    });
+
+    it('should return one of the songs from a scenario of 10 songs with a score lower than 10, receive 200', async () => {
+        await createScenarioNRecommendationEspecifcScore(10, 0);
+
+        const result = await supertest(app).get('/recommendations/random');
+        expect(result.body.score).toBeLessThanOrEqual(10);
+        expect(result.statusCode).toBe(200);
+    });
+
+    it('should not return a song in a scenario of 0 songs, receive 404', async () => {
+        const result = await supertest(app).get('/recommendations/random');
+        expect(result.statusCode).toBe(404);
     });
 });
 
