@@ -32,6 +32,14 @@ describe('post a recommendations', () => {
         });
     });
 
+    it('should not post a recommendation with a empty name ', () => {
+        cy.createSong('', recommendations.youtubeLink);
+        cy.on('window:alert', (t) => {
+            //assertions
+            expect(t).to.contains('Error creating recommendation!');
+        });
+    });
+
     it('should not post a recommendation with a invalid link', () => {
         cy.createSong(recommendations.name, 'invalidlink');
         cy.on('window:alert', (t) => {
